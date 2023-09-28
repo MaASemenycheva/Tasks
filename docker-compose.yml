@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  python-app:
+    build: 
+      context: ./backend-service
+    command: pipenv run python -m uvicorn src.service:app --host 0.0.0.0
+    restart: always
+    ports:
+      - 8000:8000
+    depends_on: 
+      - database
+    env_file:
+      - postgres.env
+
+  database:
+    build: 
+      context: ./postgres
+    volumes:
+      - ./postgres/article_and_comment_table.sql:/docker-entrypoint-initdb.d/article_and_comment_table.sql
+    ports:
+      - 5432:5432
+    restart: always
+    env_file:
+      - postgres.env
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: ionos
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256  
+
+volumes:
+   postgres_data:
